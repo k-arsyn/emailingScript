@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Mail Tracker - Detailed Logs</title>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .pixel-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 100px;
+        }
+        .info-value {
+            color: #666;
+        }
+        .read-receipt-large {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .receipt-description {
+            font-size: 0.6em;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        .read-type-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+            color: white;
+        }
+        .first-read { background-color: #4CAF50; }
+        .second-read { background-color: #2196F3; }
+        .multiple-read { background-color: #FF9800; }
+        .time-diff {
+            font-size: 0.8em;
+            color: #666;
+            font-style: italic;
+        }
+        .back-btn {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: #1976D2;
+        }
+        .analytics-section {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .analytics-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .analytics-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .analytics-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .warning-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Dashboard</a>
+        
+        <div class="header">
+            <h1>📧 Email Tracking Details</h1>
+            <p>Comprehensive read receipt analysis</p>
+        </div>
+
+        <!-- Pixel Information -->
+        <div class="pixel-info">
+            <h3>📋 Email Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Recipient:</span>
+                    <span class="info-value"><%= pixel.recipientEmail || 'Unknown' %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Campaign:</span>
+                    <span class="info-value"><%= pixel.campaignName || 'Individual Email' %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Created:</span>
+                    <span class="info-value">
+                        <%= new Date(pixel.createdAt).toLocaleDateString() %> 
+                        <%= new Date(pixel.createdAt).toLocaleTimeString() %>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Pixel ID:</span>
+                    <span class="info-value" style="font-family: monospace; font-size: 0.9em;"><%= pixel.id %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Read Receipt Status -->
+        <div class="read-receipt-large" style="color: <%= readReceipt.color %>; background: <%= readReceipt.color %>15;">
+            <%= readReceipt.ticks %>
+            <div class="receipt-description">
+                <%= readReceipt.description %>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="analytics-section">
+            <h3>📊 Reading Analytics</h3>
+            <div class="analytics-grid">
+                <div class="analytics-item">
+                    <div class="analytics-number"><%= logs.length %></div>
+                    <div class="analytics-label">Total Opens</div>
+                </div>
+                <div class="analytics-item">
+                    <div class="analytics-number">
+                        <%= logs.length > 0 ? Math.round((Date.now() - new Date(logs[logs.length - 1].time).getTime()) / (1000 * 60 * 60)) : 0 %>h
+                    </div>
+                    <div class="analytics-label">Since Last Open</div>
+                </div>
+                <div class="analytics-item">
+                    <div class="analytics-number">
+                        <%= logs.filter(log => log.readType === 'first_read').length %>
+                    </div>
+                    <div class="analytics-label">First Reads</div>
+                </div>
+                <div class="analytics-item">
+                    <div class="analytics-number">
+                        <%= logs.filter(log => log.readType === 'multiple_read').length %>
+                    </div>
+                    <div class="analytics-label">Re-reads</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Events Log -->
+        <h2>📈 Detailed Open Events</h2>
+        
+        <% if (logs.length === 0) { %>
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <h3>📭 No Opens Yet</h3>
+                <p>This email hasn't been opened yet. The tracking pixel is ready and waiting!</p>
+                <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 0.9em;">
+                    Tracking URL: <%= process.env.BASE_URL || 'http://localhost:3300' %>/tracker/<%= pixel.id %>.png
+                </div>
+            </div>
+        <% } else { %>
+            <div class="warning-note">
+                <strong>📝 Note:</strong> Some opens might be from email clients or security scanners automatically loading images. 
+                Check timestamps and user agents to identify genuine user opens vs automated scans.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Open Time</th>
+                        <th>Read Type</th>
+                        <th>Time Since Previous</th>
+                        <th>IP Address</th>
+                        <th>User Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% 
+                    function formatDateTime(isoString) {
+                        const d = new Date(isoString);
+                        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+                    }
+
+                    function getTimeDifference(current, previous) {
+                        if (!previous) return 'First open';
+                        const diff = new Date(current).getTime() - new Date(previous).getTime();
+                        const minutes = Math.floor(diff / (1000 * 60));
+                        const hours = Math.floor(minutes / 60);
+                        const days = Math.floor(hours / 24);
+                        
+                        if (days > 0) return `${days}d ${hours % 24}h ago`;
+                        if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
+                        if (minutes > 0) return `${minutes}m ago`;
+                        return `${Math.floor(diff / 1000)}s ago`;
+                    }
+
+                    function getReadTypeBadge(readType) {
+                        switch(readType) {
+                            case 'first_read': return { class: 'first-read', text: '1st Read' };
+                            case 'second_read': return { class: 'second-read', text: '2nd Read' };
+                            case 'multiple_read': return { class: 'multiple-read', text: 'Re-read' };
+                            default: return { class: 'first-read', text: 'Read' };
+                        }
+                    }
+
+                    // Sort logs chronologically (oldest first) for time difference calculation
+                    const sortedLogs = logs.slice().reverse();
+                    
+                    sortedLogs.forEach((log, index) => { 
+                        const badge = getReadTypeBadge(log.readType);
+                        const previousLog = index > 0 ? sortedLogs[index - 1] : null;
+                    %>
+                        <tr>
+                            <td><%= formatDateTime(log.time) %></td>
+                            <td>
+                                <span class="read-type-badge <%= badge.class %>">
+                                    <%= badge.text %>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="time-diff">
+                                    <%= getTimeDifference(log.time, previousLog ? previousLog.time : null) %>
+                                </span>
+                            </td>
+                            <td><%= log.ip %></td>
+                            <td style="max-width: 300px; word-break: break-all; font-size: 0.9em;">
+                                <%= log.userAgent %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+
+            <!-- Reading Pattern Analysis -->
+            <div style="margin-top: 30px; padding: 20px; background: #f0f8ff; border-radius: 10px;">
+                <h3>🔍 Reading Pattern Analysis</h3>
+                <% 
+                const firstOpen = new Date(sortedLogs[0].time);
+                const lastOpen = new Date(sortedLogs[sortedLogs.length - 1].time);
+                const totalTimeSpan = lastOpen.getTime() - firstOpen.getTime();
+                const avgTimeBetweenOpens = sortedLogs.length > 1 ? totalTimeSpan / (sortedLogs.length - 1) : 0;
+                %>
+                
+                <p><strong>First opened:</strong> <%= firstOpen.toLocaleDateString() %> at <%= firstOpen.toLocaleTimeString() %></p>
+                <% if (sortedLogs.length > 1) { %>
+                    <p><strong>Last opened:</strong> <%= lastOpen.toLocaleDateString() %> at <%= lastOpen.toLocaleTimeString() %></p>
+                    <p><strong>Reading span:</strong> <%= Math.floor(totalTimeSpan / (1000 * 60 * 60 * 24)) %> days, <%= Math.floor((totalTimeSpan % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) %> hours</p>
+                    <p><strong>Average time between opens:</strong> <%= Math.floor(avgTimeBetweenOpens / (1000 * 60)) %> minutes</p>
+                <% } %>
+                
+                <% if (sortedLogs.length > 2) { %>
+                    <p><strong>Engagement level:</strong> 
+                        <span style="color: #4CAF50; font-weight: bold;">High</span> 
+                        (Multiple re-reads indicate strong interest)
+                    </p>
+                <% } else if (sortedLogs.length === 2) { %>
+                    <p><strong>Engagement level:</strong> 
+                        <span style="color: #2196F3; font-weight: bold;">Medium</span> 
+                        (Re-read once)
+                    </p>
+                <% } else { %>
+                    <p><strong>Engagement level:</strong> 
+                        <span style="color: #FF9800; font-weight: bold;">Basic</span> 
+                        (Single read)
+                    </p>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

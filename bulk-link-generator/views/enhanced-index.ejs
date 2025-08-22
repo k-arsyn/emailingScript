@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Mail Tracker - WhatsApp-Style Read Receipts</title>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .form-row label {
+            min-width: 120px;
+            font-weight: 500;
+        }
+        .form-row input, .form-row select, .form-row textarea {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-secondary {
+            background: #2196F3;
+        }
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .read-receipt {
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .receipt-description {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        .email-input {
+            width: 100%;
+            min-height: 100px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .campaign-filter {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        .bulk-section {
+            border: 2px dashed #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            background: #f0f8ff;
+        }
+        .bulk-title {
+            color: #1976D2;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-sent { background-color: #999; }
+        .status-read { background-color: #4CAF50; }
+        .status-multiple { background-color: #2196F3; }
+        
+        /* Search and Filter Styles */
+        .search-filter-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .search-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        .search-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .search-group label {
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        .search-input {
+            min-width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .campaign-select, .limit-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+        .search-btn {
+            background: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Results Header */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .results-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        .btn-danger:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-direction: column;
+        }
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 11px;
+            text-decoration: none;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        /* Pagination Styles */
+        .pagination-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .pagination-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-pagination {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            background: white;
+        }
+        .btn-pagination:hover {
+            background: #f5f5f5;
+        }
+        .btn-pagination.active {
+            background: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+        
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        /* Loading Indicators */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .btn-loading {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .row-deleting {
+            opacity: 0.5;
+            background-color: #ffebee !important;
+            transition: all 0.3s ease;
+        }
+        .row-deleted {
+            opacity: 0;
+            transform: translateX(-100%);
+            transition: all 0.5s ease;
+        }
+        
+        /* Bulk Creation Progress */
+        .progress-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .email-count-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .email-count-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .search-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-input {
+                min-width: auto;
+            }
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .pagination-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .action-buttons {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Enhanced Mail Tracker</h1>
+            <p>WhatsApp-style read receipts for your email campaigns</p>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <form method="GET" class="search-form">
+                <div class="search-row">
+                    <div class="search-group">
+                        <label>🔍 Search:</label>
+                        <input type="text" name="search" value="<%= search %>" 
+                               placeholder="Search by email, name, or campaign..." 
+                               class="search-input" />
+                    </div>
+                    <div class="search-group">
+                        <label>📁 Campaign:</label>
+                        <select name="campaign" class="campaign-select">
+                            <option value="">All Campaigns</option>
+                            <% campaigns.forEach(campaign => { %>
+                                <option value="<%= campaign.id %>" <%= selectedCampaign === campaign.id ? 'selected' : '' %>>
+                                    <%= campaign.name %>
+                                </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <label>📄 Per Page:</label>
+                        <select name="limit" class="limit-select">
+                            <option value="10" <%= pagination.limit === 10 ? 'selected' : '' %>>10</option>
+                            <option value="20" <%= pagination.limit === 20 ? 'selected' : '' %>>20</option>
+                            <option value="50" <%= pagination.limit === 50 ? 'selected' : '' %>>50</option>
+                            <option value="100" <%= pagination.limit === 100 ? 'selected' : '' %>>100</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn search-btn">Search</button>
+                    <% if (search || selectedCampaign) { %>
+                        <a href="/" class="btn btn-secondary">Clear</a>
+                    <% } %>
+                </div>
+                <input type="hidden" name="page" value="1" />
+            </form>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number"><%= pixels.length %></div>
+                <div class="stat-label">Total Emails</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><%= pixels.filter(p => p.openCount > 0).length %></div>
+                <div class="stat-label">Opened Emails</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><%= pixels.filter(p => p.openCount === 0).length %></div>
+                <div class="stat-label">Unopened Emails</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    <%= pixels.length > 0 ? ((pixels.filter(p => p.openCount > 0).length / pixels.length) * 100).toFixed(1) : 0 %>%
+                </div>
+                <div class="stat-label">Open Rate</div>
+            </div>
+        </div>
+
+        <!-- Create Campaign -->
+        <div class="form-section">
+            <h3>Create New Campaign</h3>
+            <form id="campaignForm">
+                <div class="form-row">
+                    <label>Campaign Name:</label>
+                    <input type="text" id="campaignName" placeholder="e.g., Training Drive 2024" required />
+                </div>
+                <div class="form-row">
+                    <label>Description:</label>
+                    <input type="text" id="campaignDesc" placeholder="Brief description of the campaign" />
+                </div>
+                <button type="submit" class="btn">Create Campaign</button>
+            </form>
+        </div>
+
+        <!-- Bulk Email Creation -->
+        <div class="bulk-section">
+            <div class="bulk-title">🚀 Bulk Email Tracking Setup</div>
+            <form id="bulkForm">
+                <div class="form-row">
+                    <label>Select Campaign:</label>
+                    <select id="bulkCampaign" required>
+                        <option value="">Choose a campaign...</option>
+                        <% campaigns.forEach(campaign => { %>
+                            <option value="<%= campaign.id %>"><%= campaign.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Email Addresses:</label>
+                    <div style="flex: 1;">
+                        <textarea id="emailList" class="email-input" 
+                                  placeholder="Enter email addresses (one per line):&#10;student1@example.com&#10;student2@example.com&#10;recruiter@company.com&#10;..."></textarea>
+                        <div id="emailCountInfo" class="email-count-info">
+                            <span id="emailCountText">0 valid emails detected</span>
+                        </div>
+                        <div id="emailCountWarning" class="email-count-warning">
+                            <strong>⚠️ Large batch detected!</strong> Creating 500+ pixels may take several minutes.
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-secondary">Create Bulk Tracking Pixels</button>
+            </form>
+        </div>
+
+        <!-- Single Pixel Creation -->
+        <div class="form-section">
+            <h3>Create Single Tracking Pixel</h3>
+            <form action="/create" method="POST">
+                <div class="form-row">
+                    <label>Pixel Name:</label>
+                    <input type="text" name="name" placeholder="e.g., John Doe - Job Application" />
+                </div>
+                <div class="form-row">
+                    <label>Recipient Email:</label>
+                    <input type="email" name="recipientEmail" placeholder="recipient@example.com" />
+                </div>
+                <button type="submit" class="btn">Create Single Pixel</button>
+            </form>
+        </div>
+
+        <!-- Results Header with Bulk Actions -->
+        <div class="results-header">
+            <h2>📊 Email Tracking Results</h2>
+            <% if (pixels.length > 0) { %>
+                <div class="results-info">
+                    Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>-<%= Math.min(pagination.currentPage * pagination.limit, pagination.totalPixels) %> 
+                    of <%= pagination.totalPixels %> results
+                    <% if (search) { %>
+                        for "<%= search %>"
+                    <% } %>
+                </div>
+                <div class="bulk-actions">
+                    <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
+                    <button id="deleteSelectedBtn" class="btn btn-danger" disabled>Delete Selected</button>
+                </div>
+            <% } %>
+        </div>
+
+        <% if (pixels.length === 0) { %>
+            <div class="no-results">
+                <% if (search || selectedCampaign) { %>
+                    <p>🔍 No results found for your search criteria.</p>
+                    <a href="/" class="btn">View All Results</a>
+                <% } else { %>
+                    <p>📭 No tracking pixels created yet. Create your first campaign above!</p>
+                <% } %>
+            </div>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAllCheckbox" /></th>
+                        <th>Status</th>
+                        <th>Recipient</th>
+                        <th>Campaign</th>
+                        <th>Read Receipt</th>
+                        <th>Opens</th>
+                        <th>Created</th>
+                        <th>Tracking URL</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% 
+                    function formatDate(isoString) {
+                        const d = new Date(isoString);
+                        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }
+                    
+                    pixels.forEach(pixel => { 
+                    %>
+                        <tr data-pixel-id="<%= pixel.id %>">
+                            <td>
+                                <input type="checkbox" class="pixel-checkbox" value="<%= pixel.id %>" />
+                            </td>
+                            <td>
+                                <span class="status-indicator status-<%= pixel.readReceipt.status %>"></span>
+                            </td>
+                            <td><%= pixel.recipientEmail || 'Unknown' %></td>
+                            <td><%= pixel.campaignName || 'Individual' %></td>
+                            <td>
+                                <div class="read-receipt" style="color: <%= pixel.readReceipt.color %>">
+                                    <%= pixel.readReceipt.ticks %>
+                                    <div class="receipt-description">
+                                        <%= pixel.readReceipt.description %>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><%= pixel.openCount || 0 %></td>
+                            <td><%= formatDate(pixel.createdAt) %></td>
+                            <td>
+                                <input type="text" 
+                                       value="<%= baseUrl + '/tracker/' + pixel.id + '.png' %>"
+                                       readonly 
+                                       style="width: 250px; font-size: 11px;" 
+                                       onclick="this.select()" />
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/logs/<%= pixel.id %>" class="btn btn-small">
+                                        📊 Details
+                                    </a>
+                                    <button class="btn btn-danger btn-small delete-single" data-pixel-id="<%= pixel.id %>">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination-section">
+                <div class="pagination-info">
+                    Page <%= pagination.currentPage %> of <%= pagination.totalPages %> 
+                    (<%= pagination.totalPixels %> total results)
+                </div>
+                <div class="pagination-controls">
+                    <% if (pagination.hasPrev) { %>
+                        <a href="?page=1<%= search ? '&search=' + encodeURIComponent(search) : '' %><%= selectedCampaign ? '&campaign=' + selectedCampaign : '' %>&limit=<%= pagination.limit %>" 
+                           class="btn btn-pagination">« First</a>
+                        <a href="?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= selectedCampaign ? '&campaign=' + selectedCampaign : '' %>&limit=<%= pagination.limit %>" 
+                           class="btn btn-pagination">‹ Prev</a>
+                    <% } %>
+                    
+                    <% 
+                    const startPage = Math.max(1, pagination.currentPage - 2);
+                    const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
+                    
+                    for (let i = startPage; i <= endPage; i++) { 
+                    %>
+                        <% if (i === pagination.currentPage) { %>
+                            <span class="btn btn-pagination active"><%= i %></span>
+                        <% } else { %>
+                            <a href="?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= selectedCampaign ? '&campaign=' + selectedCampaign : '' %>&limit=<%= pagination.limit %>" 
+                               class="btn btn-pagination"><%= i %></a>
+                        <% } %>
+                    <% } %>
+                    
+                    <% if (pagination.hasNext) { %>
+                        <a href="?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= selectedCampaign ? '&campaign=' + selectedCampaign : '' %>&limit=<%= pagination.limit %>" 
+                           class="btn btn-pagination">Next ›</a>
+                        <a href="?page=<%= pagination.totalPages %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= selectedCampaign ? '&campaign=' + selectedCampaign : '' %>&limit=<%= pagination.limit %>" 
+                           class="btn btn-pagination">Last »</a>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Usage Instructions -->
+        <div style="margin-top: 40px; padding: 20px; background: #fff3cd; border-radius: 10px;">
+            <h3>📋 How to Use in Your Python Email Script</h3>
+            <p><strong>For bulk campaigns:</strong></p>
+            <ol>
+                <li>Create a campaign above</li>
+                <li>Add all your recipient emails</li>
+                <li>Copy the tracking URLs generated</li>
+                <li>In your Python script, embed each URL as: <code>&lt;img src="TRACKING_URL" width="1" height="1" style="display:none"&gt;</code></li>
+            </ol>
+            
+            <p><strong>Read Receipt Meanings:</strong></p>
+            <ul>
+                <li><span style="color: #999;">✓</span> <strong>Delivered:</strong> Email sent, not yet opened</li>
+                <li><span style="color: #4CAF50;">✓✓</span> <strong>Read:</strong> Email opened once</li>
+                <li><span style="color: #2196F3;">✓✓✓</span> <strong>Multiple Reads:</strong> Email opened multiple times</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div id="loadingText">Deleting pixels...</div>
+        </div>
+    </div>
+
+    <script>
+        // Loading indicator functions
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Optimistic UI update functions
+        function markRowAsDeleting(pixelId) {
+            const row = document.querySelector(`tr[data-pixel-id="${pixelId}"]`);
+            if (row) {
+                row.classList.add('row-deleting');
+            }
+        }
+        
+        function markRowAsDeleted(pixelId) {
+            const row = document.querySelector(`tr[data-pixel-id="${pixelId}"]`);
+            if (row) {
+                row.classList.add('row-deleted');
+                setTimeout(() => {
+                    row.remove();
+                    updateResultsCount();
+                }, 500);
+            }
+        }
+        
+        function markMultipleRowsAsDeleting(pixelIds) {
+            pixelIds.forEach(id => markRowAsDeleting(id));
+        }
+        
+        function markMultipleRowsAsDeleted(pixelIds) {
+            pixelIds.forEach(id => markRowAsDeleted(id));
+        }
+        
+        function updateResultsCount() {
+            const remainingRows = document.querySelectorAll('tbody tr:not(.row-deleted)').length;
+            const resultsInfo = document.querySelector('.results-info');
+            if (resultsInfo && remainingRows === 0) {
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+        // Campaign creation
+        document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('campaignName').value;
+            const description = document.getElementById('campaignDesc').value;
+            
+            try {
+                const response = await fetch('/create-campaign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description })
+                });
+                
+                if (response.ok) {
+                    alert('Campaign created successfully!');
+                    location.reload();
+                } else {
+                    alert('Error creating campaign');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Enhanced bulk pixel creation with loading and progress
+        document.getElementById('bulkForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const campaignId = document.getElementById('bulkCampaign').value;
+            const campaignName = document.getElementById('bulkCampaign').selectedOptions[0].text;
+            const emailText = document.getElementById('emailList').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Validate campaign selection
+            if (!campaignId) {
+                alert('Please select a campaign first');
+                return;
+            }
+            
+            // Parse and validate emails
+            const emails = emailText.split('\n')
+                .map(email => email.trim())
+                .filter(email => email && email.includes('@'));
+            
+            if (emails.length === 0) {
+                alert('Please enter valid email addresses');
+                return;
+            }
+            
+            // Validate email count
+            if (emails.length > 2000) {
+                if (!confirm(`You're about to create ${emails.length} tracking pixels. This might take a while. Continue?`)) {
+                    return;
+                }
+            }
+            
+            // Show loading state immediately
+            showLoading(`Creating ${emails.length} tracking pixels...`);
+            submitBtn.classList.add('btn-loading');
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating...';
+            
+            // Add progress indicator
+            let progressDiv = document.getElementById('bulkProgress');
+            if (progressDiv) {
+                progressDiv.remove();
+            }
+            
+            progressDiv = document.createElement('div');
+            progressDiv.id = 'bulkProgress';
+            progressDiv.className = 'progress-container';
+            progressDiv.innerHTML = `
+                <div class="progress-header">
+                    <span>Creating ${emails.length} tracking pixels...</span>
+                    <span id="progressText">0/${emails.length}</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+            `;
+            submitBtn.parentNode.appendChild(progressDiv);
+            
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch('/create-bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ campaignId, campaignName, emails })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const endTime = Date.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(1);
+                
+                hideLoading();
+                
+                if (result.success) {
+                    // Update progress to 100%
+                    const progressBar = document.getElementById('progressBar');
+                    const progressText = document.getElementById('progressText');
+                    if (progressBar) progressBar.style.width = '100%';
+                    if (progressText) progressText.textContent = `${result.created}/${emails.length} completed`;
+                    
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 20px; border-radius: 10px; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 400px;';
+                    successMsg.innerHTML = `
+                        <div style="font-size: 1.2em; margin-bottom: 10px;">🎉 Bulk Creation Successful!</div>
+                        <div>✅ Created: ${result.created} tracking pixels</div>
+                        <div>⏱️ Time: ${duration} seconds</div>
+                        <div>📊 Rate: ${(result.created / parseFloat(duration)).toFixed(1)} pixels/second</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                            Google Sheets updating in background...
+                        </div>
+                    `;
+                    document.body.appendChild(successMsg);
+                    
+                    // Clear the email list
+                    document.getElementById('emailList').value = '';
+                    
+                    setTimeout(() => {
+                        successMsg.remove();
+                        location.reload();
+                    }, 5000);
+                    
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                alert('Error creating bulk pixels: ' + error.message);
+            } finally {
+                // Reset button state
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                
+                // Remove progress indicator after delay
+                setTimeout(() => {
+                    const progressDiv = document.getElementById('bulkProgress');
+                    if (progressDiv) {
+                        progressDiv.remove();
+                    }
+                }, 3000);
+            }
+        });
+
+        // Checkbox selection functionality
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const pixelCheckboxes = document.querySelectorAll('.pixel-checkbox');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+
+        // Select all functionality
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                pixelCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateDeleteButton();
+            });
+        }
+
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function() {
+                const allChecked = Array.from(pixelCheckboxes).every(cb => cb.checked);
+                pixelCheckboxes.forEach(checkbox => {
+                    checkbox.checked = !allChecked;
+                });
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = !allChecked;
+                }
+                updateDeleteButton();
+                this.textContent = allChecked ? 'Select All' : 'Deselect All';
+            });
+        }
+
+        // Individual checkbox change
+        pixelCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateDeleteButton);
+        });
+
+        function updateDeleteButton() {
+            const selectedCount = Array.from(pixelCheckboxes).filter(cb => cb.checked).length;
+            if (deleteSelectedBtn) {
+                deleteSelectedBtn.disabled = selectedCount === 0;
+                deleteSelectedBtn.textContent = selectedCount > 0 ? `Delete Selected (${selectedCount})` : 'Delete Selected';
+            }
+            
+            if (selectAllBtn) {
+                const allChecked = Array.from(pixelCheckboxes).every(cb => cb.checked);
+                selectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
+            }
+        }
+
+        // Bulk delete functionality with loading and optimistic updates
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', async function() {
+                const selectedPixels = Array.from(pixelCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+                
+                if (selectedPixels.length === 0) {
+                    alert('Please select pixels to delete');
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to delete ${selectedPixels.length} selected tracking pixels? This action cannot be undone.`)) {
+                    return;
+                }
+                
+                // Show loading and disable button
+                showLoading(`Deleting ${selectedPixels.length} pixels...`);
+                this.classList.add('btn-loading');
+                this.disabled = true;
+                
+                // Optimistic UI update - mark rows as deleting
+                markMultipleRowsAsDeleting(selectedPixels);
+                
+                try {
+                    const response = await fetch('/pixels/bulk', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pixelIds: selectedPixels })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    hideLoading();
+                    
+                    if (result.success) {
+                        // Mark rows as deleted with animation
+                        markMultipleRowsAsDeleted(selectedPixels);
+                        
+                        // Show success message
+                        const successMsg = document.createElement('div');
+                        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
+                        successMsg.textContent = `✅ Successfully deleted ${result.deletedCount} pixels`;
+                        document.body.appendChild(successMsg);
+                        
+                        setTimeout(() => {
+                            successMsg.remove();
+                        }, 3000);
+                        
+                        // Reset UI
+                        this.classList.remove('btn-loading');
+                        this.disabled = false;
+                        updateDeleteButton();
+                        
+                    } else {
+                        alert('Error deleting pixels: ' + result.error);
+                        this.classList.remove('btn-loading');
+                        this.disabled = false;
+                        // Remove deleting state from rows
+                        selectedPixels.forEach(id => {
+                            const row = document.querySelector(`tr[data-pixel-id="${id}"]`);
+                            if (row) row.classList.remove('row-deleting');
+                        });
+                    }
+                } catch (error) {
+                    hideLoading();
+                    alert('Error: ' + error.message);
+                    this.classList.remove('btn-loading');
+                    this.disabled = false;
+                    // Remove deleting state from rows
+                    selectedPixels.forEach(id => {
+                        const row = document.querySelector(`tr[data-pixel-id="${id}"]`);
+                        if (row) row.classList.remove('row-deleting');
+                    });
+                }
+            });
+        }
+
+        // Single delete functionality with loading and optimistic updates
+        document.querySelectorAll('.delete-single').forEach(button => {
+            button.addEventListener('click', async function() {
+                const pixelId = this.dataset.pixelId;
+                const row = this.closest('tr');
+                const email = row.querySelector('td:nth-child(3)').textContent;
+                
+                if (!confirm(`Are you sure you want to delete the tracking pixel for "${email}"? This action cannot be undone.`)) {
+                    return;
+                }
+                
+                // Show loading state on button
+                this.classList.add('btn-loading');
+                this.disabled = true;
+                this.textContent = '';
+                
+                // Optimistic UI update - mark row as deleting
+                markRowAsDeleting(pixelId);
+                
+                try {
+                    const response = await fetch(`/pixel/${pixelId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // Mark row as deleted with animation
+                        markRowAsDeleted(pixelId);
+                        
+                        // Show success message
+                        const successMsg = document.createElement('div');
+                        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
+                        successMsg.textContent = '✅ Pixel deleted successfully';
+                        document.body.appendChild(successMsg);
+                        
+                        setTimeout(() => {
+                            successMsg.remove();
+                        }, 3000);
+                        
+                    } else {
+                        alert('Error deleting pixel: ' + result.error);
+                        // Reset button and row state
+                        this.classList.remove('btn-loading');
+                        this.disabled = false;
+                        this.textContent = '🗑️ Delete';
+                        row.classList.remove('row-deleting');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    // Reset button and row state
+                    this.classList.remove('btn-loading');
+                    this.disabled = false;
+                    this.textContent = '🗑️ Delete';
+                    row.classList.remove('row-deleting');
+                }
+            });
+        });
+
+        // Auto-submit search form on select change
+        document.querySelectorAll('.campaign-select, .limit-select').forEach(select => {
+            select.addEventListener('change', function() {
+                this.closest('form').submit();
+            });
+        });
+
+        // Email count validation and real-time feedback
+        const emailListTextarea = document.getElementById('emailList');
+        const emailCountInfo = document.getElementById('emailCountInfo');
+        const emailCountWarning = document.getElementById('emailCountWarning');
+        const emailCountText = document.getElementById('emailCountText');
+        const bulkSubmitBtn = document.querySelector('#bulkForm button[type="submit"]');
+        
+        function validateAndCountEmails() {
+            const emailText = emailListTextarea.value;
+            const emails = emailText.split('\n')
+                .map(email => email.trim())
+                .filter(email => email && email.includes('@'));
+            
+            const validEmails = emails.filter(email => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            });
+            
+            const duplicates = emails.length - new Set(emails).size;
+            
+            // Update count display
+            emailCountText.textContent = `${validEmails.length} valid emails detected`;
+            if (duplicates > 0) {
+                emailCountText.textContent += ` (${duplicates} duplicates will be ignored)`;
+            }
+            
+            // Show/hide info and warning
+            if (validEmails.length > 0) {
+                emailCountInfo.style.display = 'block';
+                
+                if (validEmails.length >= 500) {
+                    emailCountWarning.style.display = 'block';
+                    emailCountWarning.innerHTML = `
+                        <strong>⚠️ Large batch detected!</strong> 
+                        Creating ${validEmails.length} pixels may take several minutes. 
+                        Consider breaking into smaller batches for better performance.
+                    `;
+                } else if (validEmails.length >= 100) {
+                    emailCountWarning.style.display = 'block';
+                    emailCountWarning.innerHTML = `
+                        <strong>📊 Medium batch:</strong> 
+                        Creating ${validEmails.length} pixels should complete in under a minute.
+                    `;
+                    emailCountWarning.style.background = '#d1ecf1';
+                    emailCountWarning.style.borderColor = '#bee5eb';
+                    emailCountWarning.style.color = '#0c5460';
+                } else {
+                    emailCountWarning.style.display = 'none';
+                }
+                
+                // Enable/disable submit button
+                bulkSubmitBtn.disabled = false;
+                bulkSubmitBtn.textContent = `Create ${validEmails.length} Tracking Pixels`;
+            } else {
+                emailCountInfo.style.display = 'none';
+                emailCountWarning.style.display = 'none';
+                bulkSubmitBtn.disabled = true;
+                bulkSubmitBtn.textContent = 'Create Bulk Tracking Pixels';
+            }
+        }
+        
+        // Add event listeners for real-time validation
+        if (emailListTextarea) {
+            emailListTextarea.addEventListener('input', validateAndCountEmails);
+            emailListTextarea.addEventListener('paste', () => {
+                setTimeout(validateAndCountEmails, 100); // Delay to allow paste to complete
+            });
+        }
+        
+        // Initialize delete button state
+        updateDeleteButton();
+    </script>
+</body>
+</html>
