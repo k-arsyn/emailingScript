@@ -20,7 +20,7 @@ dirs.forEach(dir => {
 });
 
 // Create 1x1 transparent pixel if it doesn't exist
-const pixelPath = path.join('public', 'images', 'pixel.png');
+const pixelPath = path.join('public', 'images', 'pixel.svg');
 if (!fs.existsSync(pixelPath)) {
     // Create a 1x1 transparent PNG (base64 encoded)
     const transparentPixel = Buffer.from(

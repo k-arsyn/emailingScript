@@ -131,7 +131,7 @@ class BulkEmailSender:
         content = content.replace('{email}', recipient.get('email', ''))
         content = content.replace('{company}', recipient.get('company', ''))
         
-        # Add invisible tracking pixel at the end of the email
+        # Add invisible tracking pixel at the end of the email (now SVG)
         tracking_pixel = f'<img src="{tracking_url}" width="1" height="1" style="display:none;" alt="">'
         
         # Insert tracking pixel before closing body tag

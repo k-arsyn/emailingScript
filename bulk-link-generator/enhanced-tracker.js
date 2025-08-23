@@ -234,7 +234,7 @@ app.post('/create-bulk', async (req, res) => {
       createdPixels.push({
         pixelId,
         email,
-        trackingUrl: `${baseUrl}/tracker/${pixelId}.png`
+        trackingUrl: `${baseUrl}/tracker/${pixelId}.svg`
       });
       
       pixelData.push([pixelId, pixelName, email, campaignId, campaignName, createdAt, 'sent']);
@@ -333,8 +333,8 @@ app.post('/create-bulk', async (req, res) => {
   }
 });
 
-// Enhanced tracker route with read type detection
-app.get('/tracker/:id.png', (req, res) => {
+// Enhanced tracker route with read type detection - now supports SVG
+app.get('/tracker/:id.svg', (req, res) => {
   const pixelId = req.params.id;
 
   // Check if pixel exists
@@ -407,10 +407,10 @@ app.get('/tracker/:id.png', (req, res) => {
           console.error('Error updating Google Sheets:', error);
         }
 
-        // Send pixel image
-        res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (fsErr) => {
+        // Send SVG pixel image
+        res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.svg'), (fsErr) => {
           if (fsErr) {
-            console.error('Error sending pixel.png:', fsErr);
+            console.error('Error sending pixel.svg:', fsErr);
             res.status(fsErr.status || 500).end();
           }
         });
@@ -634,8 +634,8 @@ app.get('/logs/:id', (req, res) => {
 });
 
 // Start server
-const PORT = config.server.port;
+const PORT = process.env.PORT || config.server.port;
 app.listen(PORT, () => {
-  console.log(`Enhanced Mail Tracker running on http://localhost:${PORT}`);
+  console.log(`Enhanced Mail Tracker running on port ${PORT}`);
   console.log('Features: WhatsApp-like read receipts, bulk campaigns, advanced analytics');
 });

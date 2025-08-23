@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.env
+.DS_Store
+*.db
+google-credentials.json
+.git/
+README.md
