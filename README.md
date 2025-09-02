@@ -40,7 +40,10 @@ python -m venv .venv
 # or
 source .venv/bin/activate  # Linux/Mac
 
-pip install pandas openpyxl requests
+# Install Python dependencies
+pip install -r python-requirements.txt
+# Or manually:
+# pip install pandas openpyxl requests python-dotenv
 ```
 
 ### 3. Prepare Email Data
