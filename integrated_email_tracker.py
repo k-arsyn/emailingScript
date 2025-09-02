@@ -4,16 +4,22 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 import time
+import requests
+import json
+import uuid
+from math import ceil
 
 # SMTP configuration for Gmail
 smtp_server = "smtp.gmail.com"
 smtp_port = 587
-sender_email = "242105@iiitt.ac.in"
-password = "srfa netw ztud nujj"  # Use Gmail App Password if 2FA is enabled
-
+sender_email = "221120@iiitt.ac.in"
+password = "gwze iuqp xlgl venr"
 
 # Email content
-subject = "Invitation to participate in Training and Placement Drive at IIIT Tiruchirappalli"
+subject = "IIIT Trichy - Placement & Internship Drive 2026"
+
+# Tracking server configuration - Railway deployment
+TRACKING_SERVER = "https://emailingscript-production.up.railway.app"
 
 body_template = """<!DOCTYPE html>
 <html>
@@ -24,8 +30,11 @@ body_template = """<!DOCTYPE html>
 
   <h2 style="font-size:20px;color:#2c3e50;margin-bottom:12px;">Greetings from IIIT Tiruchirappalli!</h2>
 
-  <p style="line-height:1.6;font-size:14px;">
+  <p style="line-height:1.6;font-size:14px; color:#000000;">
     Dear HR team at {company},<br>
+  </p>
+    
+  <p style="line-height:1.6;font-size:14px; color:#000000;">
     We are pleased to invite your esteemed organization for our <strong>Placements & Internship Drive 2026</strong>. Our students are rigorously trained in:
   </p>
 
@@ -38,7 +47,7 @@ body_template = """<!DOCTYPE html>
 
   <p style="line-height:1.6;font-size:14px; margin-bottom: 20px;">
     To have better insight of our talent pool, please find below an overview of the academic programs 
-    that shape our students' expertise along with the distribution of students across each stream.
+    that shape our student's expertise along with the distribution of students across each stream.
   </p>
 
   <!-- Program Structure -->
@@ -177,12 +186,12 @@ body_template = """<!DOCTYPE html>
     <div style="background:#fff;border:1px solid #ccc;padding:10px;border-radius:5px;margin-bottom:8px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDF_file_icon.svg/32px-PDF_file_icon.svg.png" 
      alt="PDF" width="18" style="vertical-align:middle;margin-right:8px;">
-      <a href="https://drive.google.com/file/d/1HVTu3P_wqudC51a-NXG2-erQTAbc4WTd/view?usp=sharing" style="text-decoration:none;color:#2c3e50;">'26 Placement Participation Form – IIITT.pdf</a>
+      <a href="https://drive.google.com/file/d/1wgxoEoybz5WdtKIBUOGMbvvk2es74fMm/view?usp=drive_link" style="text-decoration:none;color:#2c3e50;">'26 Placement Participation Form – IIITT.pdf</a>
     </div>
     <div style="background:#fff;border:1px solid #ccc;padding:10px;border-radius:5px;margin-bottom:8px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDF_file_icon.svg/32px-PDF_file_icon.svg.png" 
      alt="PDF" width="18" style="vertical-align:middle;margin-right:8px;">
-      <a href="https://drive.google.com/file/d/1k7E7TuwXnRwOAXPbjVCNXll14yVzaPrk/view?usp=sharing" style="text-decoration:none;color:#2c3e50;">'26 Internship Details Form – IIITT.pdf</a>
+      <a href="https://drive.google.com/file/d/19pQGfE8O9GCckGtYESTBCR0q0SHahFBN/view?usp=sharing" style="text-decoration:none;color:#2c3e50;">'26 Internship Details Form – IIITT.pdf</a>
     </div>
     <div style="background:#fff;border:1px solid #ccc;padding:10px;border-radius:5px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDF_file_icon.svg/32px-PDF_file_icon.svg.png" 
@@ -191,6 +200,12 @@ body_template = """<!DOCTYPE html>
     </div>
   </div>
 
+  <p style="line-height:1.6;font-size:14px; color:#000000;">
+    For any further details reach out to our student co-ordinator<br>
+    {spoc_name}<br>
+    Mobile: {spoc_mobile}
+  </p>
+
   <!-- Footer -->
   <div style="font-size:12px;color:#777;margin-top:15px;">
     Warm regards,<br>
@@ -198,79 +213,211 @@ body_template = """<!DOCTYPE html>
     📍 Sethurapatti, Tiruchirappalli, Tamil Nadu<br>
     ✉️ <a href="mailto:placement@iiitt.ac.in">placement@iiitt.ac.in</a> | ☎️ +91-7696265939
   </div>
+
+  <!-- TRACKING PIXEL - This will be inserted dynamically -->
+  {tracking_pixel}
 </div>
 </body>
-</html>
+</html>"""
 
-"""
-
-# Load HR list from Excel
-df = pd.read_excel("list.xlsx")
-
-# Rename these to match your Excel headers
-EMAIL_COLUMN = "E - mail"
-COMPANY_COLUMN = "Company"
-
-# Drop duplicates by HR Email
-df = df.drop_duplicates(subset="E - mail")
-
-# Config for throttling
-batch_size = 100
-pause_interval = 200  # seconds
-
-# Connect to SMTP server
-smtp = smtplib.SMTP(smtp_server, smtp_port)
-smtp.starttls()
-smtp.login(sender_email, password)
-
-for idx, row in df.iterrows():
-    recipient_email = row[EMAIL_COLUMN]
-    company = row[COMPANY_COLUMN]
-
-    if pd.isna(recipient_email) or pd.isna(company):
-        continue
-
-    # Personalize message
-    body = body_template.format(company=company)
-
-    # Prepare message
-    msg = MIMEMultipart()
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
-    msg["Subject"] = subject
-    # Attach HTML body
-    msg_alternative = MIMEMultipart("alternative")
-    msg.attach(msg_alternative)
-    msg_alternative.attach(MIMEText(body, "html"))
-
-    # Attach first chart
-    with open("chart1.png", "rb") as img_file:
-        img = MIMEImage(img_file.read())
-        img.add_header("Content-ID", "<chart1>")
-        img.add_header("Content-Disposition", "inline", filename="chart1.png")
-        msg.attach(img)
-
-    # Attach second chart
-    with open("chart2.png", "rb") as img_file:
-        img = MIMEImage(img_file.read())
-        img.add_header("Content-ID", "<chart2>")
-        img.add_header("Content-Disposition", "inline", filename="chart2.png")
-        msg.attach(img)
-
+def create_campaign_and_get_tracking_urls(campaign_name, email_list):
+    """Create a campaign and get tracking URLs for all emails"""
+    print(f"🎯 Creating campaign: {campaign_name}")
+    
     try:
-        print(f"Sending to {recipient_email} ({company})")
-        smtp.sendmail(sender_email, recipient_email, msg.as_string())
+        # Step 1: Create campaign
+        campaign_data = {
+            "name": campaign_name,
+            "description": f"Bulk email campaign with {len(email_list)} recipients"
+        }
+        
+        response = requests.post(f"{TRACKING_SERVER}/create-campaign", 
+                               data=campaign_data,
+                               headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        
+        if response.status_code != 200:
+            print(f"❌ Failed to create campaign: {response.text}")
+            return {}
+        
+        campaign_result = response.json()
+        campaign_id = campaign_result.get('campaignId')
+        
+        if not campaign_id:
+            print("❌ No campaign ID received")
+            return {}
+        
+        print(f"✅ Campaign created successfully. ID: {campaign_id}")
+        
+        # Step 2: Create bulk tracking pixels
+        bulk_data = {
+            "campaignId": campaign_id,
+            "campaignName": campaign_name,
+            "emails": email_list
+        }
+        
+        response = requests.post(f"{TRACKING_SERVER}/create-bulk", 
+                               json=bulk_data,
+                               headers={'Content-Type': 'application/json'})
+        
+        if response.status_code == 200:
+            result = response.json()
+            pixels = result.get('pixels', [])
+            
+            # Convert to email -> tracking_url mapping
+            tracking_urls = {}
+            for pixel in pixels:
+                tracking_urls[pixel['email']] = pixel['trackingUrl']
+            
+            print(f"📊 Generated {len(tracking_urls)} tracking URLs")
+            return tracking_urls
+        else:
+            print(f"❌ Failed to create tracking pixels: {response.text}")
+            return {}
+            
     except Exception as e:
-        print(f"❌ Error sending to {recipient_email}: {e}")
+        print(f"❌ Error creating campaign: {e}")
+        return {}
 
-    # Pause after every `batch_size` emails
-    if (idx + 1) % batch_size == 0:
-        print(f"🕒 Pausing for {pause_interval} seconds after {idx + 1} emails...")
-        smtp.quit()
-        time.sleep(pause_interval)
-        smtp = smtplib.SMTP(smtp_server, smtp_port)
-        smtp.starttls()
-        smtp.login(sender_email, password)
 
-smtp.quit()
-print("✅ All emails sent successfully.")
+def main():
+    print("🚀 Starting integrated email campaign with tracking...")
+    
+    # Load HR list from Excel
+    df_companies = pd.read_excel("list.xlsx")
+    df_spocs = pd.read_excel("SpocDetails.xlsx")
+    
+    # Drop duplicates by email
+    df_companies = df_companies.drop_duplicates(subset="E - mail")
+    
+    num_companies = len(df_companies)
+    num_spocs = len(df_spocs)
+    base_count = num_companies // num_spocs
+    remainder = num_companies % num_spocs
+    
+    # Assign companies to SPOCs
+    spoc_assignments = []
+    company_index = 0
+    for i, (_, spoc_row) in enumerate(df_spocs.iterrows()):
+        count_for_this_spoc = base_count + (1 if i >= num_spocs - remainder else 0)
+        assigned_companies = df_companies.iloc[company_index:company_index + count_for_this_spoc]
+        company_index += count_for_this_spoc
+        for _, comp_row in assigned_companies.iterrows():
+            spoc_assignments.append({
+                "Company": comp_row["Company"],
+                "E - mail": comp_row["E - mail"],
+                "SPOC Name": spoc_row["SPOC Name"],
+                "Mobile No.": spoc_row["Mobile No."]
+            })
+    
+    df_final = pd.DataFrame(spoc_assignments)
+    
+    # Get all unique emails for tracking
+    email_list = df_final["E - mail"].dropna().tolist()
+    
+    # Create campaign and get tracking URLs
+    campaign_name = f"IIIT_Trichy_Placements_2026_{int(time.time())}"
+    tracking_urls = create_campaign_and_get_tracking_urls(campaign_name, email_list)
+    
+    if not tracking_urls:
+        print("❌ Failed to get tracking URLs. Continuing without tracking...")
+        tracking_urls = {}
+    
+    # Config for throttling
+    batch_size = 100
+    pause_interval = 200  # seconds
+    
+    # Connect to SMTP server
+    print("📧 Connecting to SMTP server...")
+    smtp = smtplib.SMTP(smtp_server, smtp_port)
+    smtp.starttls()
+    smtp.login(sender_email, password)
+    
+    sent_count = 0
+    failed_count = 0
+    
+    for idx, row in df_final.iterrows():
+        recipient_email = row["E - mail"]
+        company = row["Company"]
+        spoc_name = row["SPOC Name"]
+        spoc_mobile = row["Mobile No."]
+        
+        if pd.isna(recipient_email) or pd.isna(company):
+            continue
+        
+        # Get tracking pixel for this email
+        tracking_url = tracking_urls.get(recipient_email, "")
+        if tracking_url:
+            tracking_pixel = f'<img src="{tracking_url}" width="1" height="1" style="display:none;" alt="">'
+        else:
+            tracking_pixel = ""
+        
+        # Personalize message with tracking pixel
+        body = body_template.format(
+            company=company,
+            spoc_name=spoc_name, 
+            spoc_mobile=spoc_mobile,
+            tracking_pixel=tracking_pixel
+        )
+        
+        # Prepare message
+        msg = MIMEMultipart()
+        msg["From"] = sender_email
+        msg["To"] = recipient_email
+        msg["Subject"] = subject
+        
+        # Attach HTML body
+        msg_alternative = MIMEMultipart("alternative")
+        msg.attach(msg_alternative)
+        msg_alternative.attach(MIMEText(body, "html"))
+        
+        # Attach first chart
+        try:
+            with open("chart1.png", "rb") as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header("Content-ID", "<chart1>")
+                img.add_header("Content-Disposition", "inline", filename="chart1.png")
+                msg.attach(img)
+        except FileNotFoundError:
+            print("⚠️ chart1.png not found, skipping attachment")
+        
+        # Attach second chart
+        try:
+            with open("chart2.png", "rb") as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header("Content-ID", "<chart2>")
+                img.add_header("Content-Disposition", "inline", filename="chart2.png")
+                msg.attach(img)
+        except FileNotFoundError:
+            print("⚠️ chart2.png not found, skipping attachment")
+        
+        try:
+            tracking_status = "📊 WITH TRACKING" if tracking_url else "❌ NO TRACKING"
+            print(f"📤 Sending to {recipient_email} ({company}) via {spoc_name} - {tracking_status}")
+            smtp.sendmail(sender_email, recipient_email, msg.as_string())
+            sent_count += 1
+        except Exception as e:
+            print(f"❌ Error sending to {recipient_email}: {e}")
+            failed_count += 1
+        
+        # Pause after every `batch_size` emails
+        if (idx + 1) % batch_size == 0:
+            print(f"🕒 Pausing for {pause_interval} seconds after {idx + 1} emails...")
+            smtp.quit()
+            time.sleep(pause_interval)
+            smtp = smtplib.SMTP(smtp_server, smtp_port)
+            smtp.starttls()
+            smtp.login(sender_email, password)
+    
+    smtp.quit()
+    
+    print("=" * 60)
+    print("📈 CAMPAIGN SUMMARY")
+    print("=" * 60)
+    print(f"✅ Emails sent successfully: {sent_count}")
+    print(f"❌ Failed emails: {failed_count}")
+    print(f"📊 Emails with tracking: {len(tracking_urls)}")
+    print(f"🌐 Tracking dashboard: {TRACKING_SERVER}")
+    print("=" * 60)
+
+if __name__ == "__main__":
+    main()

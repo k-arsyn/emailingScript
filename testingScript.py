@@ -10,11 +10,11 @@ from math import ceil
 smtp_server = "smtp.gmail.com"
 smtp_port = 587
 #Sender mail 
-sender_email = "placement@iiitt.ac.in"
-password = "capg qusx rdzg jzyc"
+sender_email = "221120@iiitt.ac.in"
+password = "gwze iuqp xlgl venr"
 
 # Email content
-subject = "Invitation to participate in Training and Placement Drive at IIIT Tiruchirappalli"
+subject = "if you recieve this please ignore"
 
 body_template = """<!DOCTYPE html>
 <html>

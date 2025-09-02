@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 
 class EmailTracker:
-    def __init__(self, tracker_url="http://localhost:3300"):
+    def __init__(self, tracker_url="https://emailingscript-production.up.railway.app"):
         self.tracker_url = tracker_url
         self.session = requests.Session()
     
@@ -78,7 +78,7 @@ class EmailTracker:
             return []
 
 class BulkEmailSender:
-    def __init__(self, smtp_server, smtp_port, email, password, tracker_url="http://localhost:3300"):
+    def __init__(self, smtp_server, smtp_port, email, password, tracker_url="https://emailingscript-production.up.railway.app"):
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
         self.email = email
@@ -335,7 +335,7 @@ def main():
     parser.add_argument('--email', required=True, help='Sender email')
     parser.add_argument('--password', required=True, help='Sender password/app password')
     parser.add_argument('--delay', type=float, default=1.0, help='Delay between emails (seconds)')
-    parser.add_argument('--tracker-url', default='http://localhost:3300', help='Mail tracker URL')
+    parser.add_argument('--tracker-url', default='https://emailingscript-production.up.railway.app', help='Mail tracker URL')
     parser.add_argument('--create-samples', action='store_true', help='Create sample template and recipient files')
     
     args = parser.parse_args()
