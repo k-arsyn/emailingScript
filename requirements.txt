@@ -1,0 +1,13 @@
+# Requirements for Email Tracking System
+# Install with: pip install -r requirements.txt
+
+# Core email and data processing
+pandas>=1.5.0
+openpyxl>=3.0.0
+requests>=2.28.0
+
+# Environment variable management
+python-dotenv>=0.19.0
+
+# Optional: For enhanced Excel file handling
+xlrd>=2.0.0

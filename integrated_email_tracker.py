@@ -7,19 +7,31 @@ import time
 import requests
 import json
 import uuid
+import os
+from dotenv import load_dotenv
 from math import ceil
 
-# SMTP configuration for Gmail
-smtp_server = "smtp.gmail.com"
-smtp_port = 587
-sender_email = "221120@iiitt.ac.in"
-password = "gwze iuqp xlgl venr"
+# Load environment variables
+load_dotenv()
+
+# SMTP configuration from environment variables
+smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+smtp_port = int(os.getenv('SMTP_PORT', '587'))
+sender_email = os.getenv('EMAIL_ADDRESS')
+password = os.getenv('EMAIL_PASSWORD')
+
+# Check if credentials are provided
+if not sender_email or not password:
+    print("❌ Error: Email credentials not found!")
+    print("Please create a .env file with your email credentials.")
+    print("Copy .env.example to .env and fill in your details.")
+    exit(1)
 
 # Email content
-subject = "IIIT Trichy - Placement & Internship Drive 2026"
+subject = os.getenv('EMAIL_SUBJECT', 'IIIT Trichy - Placement & Internship Drive 2026')
 
-# Tracking server configuration - Railway deployment
-TRACKING_SERVER = "https://emailingscript-production.up.railway.app"
+# Tracking server configuration
+TRACKING_SERVER = os.getenv('TRACKING_SERVER', 'https://emailingscript-production.up.railway.app')
 
 body_template = """<!DOCTYPE html>
 <html>
