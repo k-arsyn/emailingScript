@@ -1,9 +1,5 @@
 {
   "build": {
-    "builder": "dockerfile",
-    "dockerfilePath": "bulk-link-generator/Dockerfile"
-  },
-  "deploy": {
-    "startCommand": "cd bulk-link-generator && node enhanced-tracker.js"
+    "builder": "dockerfile"
   }
 }
