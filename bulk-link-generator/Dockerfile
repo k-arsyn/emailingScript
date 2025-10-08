@@ -16,8 +16,13 @@ COPY . .
 # Ensure public/images directory exists (should already be copied above)
 RUN mkdir -p public/images
 
-# Expose port
-EXPOSE 3300
+# Create user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
+
+# Expose port (will be overridden by hosting platform)
+EXPOSE $PORT
 
 # Start the application
 CMD ["node", "enhanced-tracker.js"]
